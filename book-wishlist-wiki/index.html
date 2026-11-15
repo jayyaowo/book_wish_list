@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>待買書單知識庫 | Book Wishlist Wiki</title>
+  <!-- Google Fonts: Noto Serif TC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Noto+Serif+TC:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-parchment: #f6f2e9;
+      --bg-page: #faf7f2;
+      --wood-dark: #3a2213;
+      --wood-medium: #54331d;
+      --wood-light: #73492a;
+      --wood-shelf: linear-gradient(180deg, #784c28 0%, #523118 60%, #351c0b 100%);
+      --wood-edge: #946036;
+      --wood-shadow: rgba(26, 14, 7, 0.45);
+      --text-main: #2b221b;
+      --text-muted: #736357;
+      --accent-warm: #a65223;
+      --accent-gold: #c98836;
+      --border-warm: #e3d8c8;
+      --paper-shadow: 0 15px 35px rgba(50, 35, 20, 0.22), 0 5px 15px rgba(0,0,0,0.08);
+      --font-serif: 'Noto Serif TC', 'Songti TC', 'Baskerville', 'Georgia', serif;
+      --font-display: 'Cinzel', 'Noto Serif TC', serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-parchment);
+      background-image: 
+        radial-gradient(ellipse at 50% 0%, rgba(255, 250, 240, 0.6) 0%, rgba(235, 225, 210, 0.3) 100%),
+        repeating-linear-gradient(45deg, rgba(160, 140, 110, 0.02) 0, rgba(160, 140, 110, 0.02) 1px, transparent 0, transparent 8px);
+      color: var(--text-main);
+      font-family: var(--font-serif);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* 頂部典雅導覽與題字 */
+    header {
+      padding: 40px 24px 20px;
+      text-align: center;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .library-crest {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      letter-spacing: 0.3em;
+      color: var(--accent-warm);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      color: var(--wood-dark);
+      text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+    }
+
+    .library-sub {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 24px;
+    }
+
+    /* 控制面板與工具列 */
+    .controls-panel {
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      padding: 0 24px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .search-box-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+      max-width: 450px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 11px 16px 11px 40px;
+      background: #fffdfa;
+      border: 1px solid var(--border-warm);
+      border-radius: 25px;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
+      color: var(--text-main);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.03);
+      outline: none;
+      transition: all 0.25s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent-warm);
+      box-shadow: 0 0 0 3px rgba(166, 82, 35, 0.15);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* 狀態切換開關 */
+    .status-segment {
+      display: inline-flex;
+      background: #ece3d3;
+      padding: 4px;
+      border-radius: 20px;
+      border: 1px solid var(--border-warm);
+    }
+
+    .status-btn {
+      background: transparent;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-family: var(--font-serif);
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .status-btn.active {
+      background: #fffdfa;
+      color: var(--wood-dark);
+      font-weight: 700;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    /* 今天帶哪本回家（隨機選書按鈕） */
+    .random-btn {
+      background: linear-gradient(135deg, var(--accent-warm), #c45b20);
+      color: #fff;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 22px;
+      font-family: var(--font-serif);
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(166, 82, 35, 0.3);
+      transition: all 0.25s transform, all 0.25s box-shadow;
+    }
+
+    .random-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(166, 82, 35, 0.4);
+    }
+
+    .random-btn:active {
+      transform: translateY(0);
+    }
+
+    /* 9 大分類過濾標籤列 */
+    .category-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding-top: 4px;
+    }
+
+    .cat-pill {
+      background: #faf6ee;
+      border: 1px solid var(--border-warm);
+      padding: 5px 13px;
+      border-radius: 15px;
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .cat-pill:hover {
+      border-color: var(--accent-gold);
+      color: var(--wood-dark);
+    }
+
+    .cat-pill.active {
+      background: var(--wood-dark);
+      border-color: var(--wood-dark);
+      color: #faf5ee;
+      font-weight: 600;
+    }
+
+    .active-concept-indicator {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      background: #ebdcc9;
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 0.88rem;
+      color: var(--wood-dark);
+      width: fit-content;
+      margin-top: 4px;
+    }
+
+    .clear-concept-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      color: var(--accent-warm);
+      margin-left: 4px;
+    }
+
+    /* =========================================
+       書架主展示區 (Bookshelf View)
+       ========================================= */
+    .bookshelf-container {
+      max-width: 1200px;
+      margin: 0 auto 60px;
+      padding: 0 24px;
+      width: 100%;
+      flex: 1;
+    }
+
+    .shelf-group {
+      margin-bottom: 50px;
+    }
+
+    .shelf-books {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: 24px 20px;
+      align-items: flex-end;
+      padding: 0 20px;
+      min-height: 230px;
+    }
+
+    /* 書籍立體展示元件 */
+    .book-item {
+      position: relative;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), filter 0.3s;
+      perspective: 800px;
+      outline: none;
+    }
+
+    .book-item:hover {
+      transform: translateY(-14px) scale(1.03);
+      z-index: 10;
+    }
+
+    .book-item.spotlight {
+      animation: bookGlow 1.8s infinite alternate;
+      transform: translateY(-20px) scale(1.08);
+      z-index: 20;
+    }
+
+    @keyframes bookGlow {
+      from { box-shadow: 0 0 15px rgba(201, 136, 54, 0.6); }
+      to { box-shadow: 0 0 35px rgba(201, 136, 54, 0.95); }
+    }
+
+    /* 書脊/精裝封面呈現 */
+    .book-cover-wrap {
+      width: 130px;
+      height: 190px;
+      border-radius: 3px 8px 8px 3px;
+      position: relative;
+      background: #3e2e28;
+      box-shadow: 
+        -4px 4px 10px rgba(0,0,0,0.35),
+        -1px 1px 2px rgba(255,255,255,0.1) inset,
+        inset -3px 0 6px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform-origin: bottom center;
+      transition: all 0.3s ease;
+    }
+
+    /* 模擬書背陰影折痕 */
+    .book-cover-wrap::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 12px;
+      background: linear-gradient(90deg, 
+        rgba(255,255,255,0.15) 0%, 
+        rgba(0,0,0,0.2) 40%, 
+        rgba(0,0,0,0.5) 85%, 
+        rgba(255,255,255,0.05) 100%);
+      z-index: 3;
+    }
+
+    .book-cover-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* 自適應擬真書封（若無圖片） */
+    .generated-cover {
+      width: 100%;
+      height: 100%;
+      padding: 16px 12px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #faf5eb;
+      position: relative;
+      text-align: left;
+    }
+
+    .gen-category {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      opacity: 0.85;
+      text-transform: uppercase;
+    }
+
+    .gen-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.35;
+      margin: auto 0;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    }
+
+    .gen-author {
+      font-size: 0.72rem;
+      opacity: 0.9;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* 狀態吊牌 (Ribbon) */
+    .book-ribbon {
+      position: absolute;
+      top: 0;
+      right: 12px;
+      padding: 3px 6px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #fff;
+      border-radius: 0 0 3px 3px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      z-index: 4;
+      letter-spacing: 0.05em;
+    }
+
+    .ribbon-to-buy {
+      background: #b54a24;
+    }
+
+    .ribbon-acquired {
+      background: #46704b;
+    }
+
+    /* 書籍下方陰影與木架層板 */
+    .shelf-wood {
+      height: 18px;
+      background: var(--wood-shelf);
+      border-top: 3px solid var(--wood-edge);
+      box-shadow: 
+        0 8px 18px var(--wood-shadow),
+        0 2px 4px rgba(0,0,0,0.4);
+      border-radius: 3px;
+      position: relative;
+      margin-top: 6px;
+    }
+
+    .shelf-wood::after {
+      content: '';
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: -6px;
+      height: 6px;
+      background: rgba(0,0,0,0.3);
+      filter: blur(4px);
+    }
+
+    /* 空狀態提示 */
+    .empty-shelf-notice {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+      font-style: italic;
+      font-size: 1.05rem;
+    }
+
+    /* =========================================
+       翻開一本書 (Open-Book Modal)
+       ========================================= */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(28, 18, 12, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .open-book-spread {
+      background: var(--bg-page);
+      width: 100%;
+      max-width: 900px;
+      height: 85vh;
+      max-height: 620px;
+      border-radius: 6px;
+      box-shadow: var(--paper-shadow);
+      display: flex;
+      position: relative;
+      transform: scale(0.92) rotateY(-8deg);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+      border: 1px solid #dfd4c4;
+    }
+
+    .modal-overlay.open .open-book-spread {
+      transform: scale(1) rotateY(0deg);
+    }
+
+    /* 中間書脊裝訂折痕陰影 */
+    .book-spine-crease {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 40px;
+      transform: translateX(-50%);
+      background: linear-gradient(90deg, 
+        rgba(0,0,0,0.08) 0%, 
+        rgba(0,0,0,0.2) 48%, 
+        rgba(0,0,0,0.28) 50%, 
+        rgba(0,0,0,0.2) 52%, 
+        rgba(0,0,0,0.08) 100%);
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    /* 左右兩頁結構 */
+    .book-page {
+      flex: 1;
+      padding: 40px 36px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .book-page-left {
+      border-right: 1px solid rgba(180, 160, 140, 0.2);
+      padding-right: 44px;
+      background: linear-gradient(90deg, #faf6ef 0%, #f4efe4 95%, #e8e0d2 100%);
+    }
+
+    .book-page-right {
+      padding-left: 44px;
+      background: linear-gradient(270deg, #faf6ef 0%, #f5efe4 95%, #e8e0d2 100%);
+    }
+
+    /* 左頁：封面、書名、分類徽章、狀態切換 */
+    .left-cover-presentation {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .modal-cover-frame {
+      width: 120px;
+      height: 175px;
+      flex-shrink: 0;
+      border-radius: 4px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+      overflow: hidden;
+      background: #4a382c;
+    }
+
+    .modal-cover-frame img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .modal-book-meta {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .modal-book-title {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--wood-dark);
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .modal-book-orig-title {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: italic;
+      margin-bottom: 8px;
+    }
+
+    .modal-book-author {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .modal-book-translator {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* 標籤小區塊 */
+    .meta-tags-block {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: auto;
+      padding-top: 16px;
+      border-top: 1px dashed var(--border-warm);
+    }
+
+    .meta-tag-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .meta-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-primary-cat {
+      background: #73492a;
+      color: #fff;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .badge-sec-cat {
+      background: #ede3d2;
+      color: var(--wood-dark);
+      border: 1px solid var(--border-warm);
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+    }
+
+    .difficulty-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .diff-入門 { background: #e2f0d9; color: #386127; }
+    .diff-進階 { background: #fdf3d8; color: #855b16; }
+    .diff-困難 { background: #fae1dc; color: #8a2417; }
+
+    .context-tag {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.04);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+
+    /* 狀態切換按鈕 */
+    .status-action-row {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .toggle-status-btn {
+      background: #f0e6d6;
+      border: 1px solid var(--border-warm);
+      padding: 6px 14px;
+      border-radius: 16px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: var(--wood-dark);
+      font-family: var(--font-serif);
+      transition: all 0.2s;
+    }
+
+    .toggle-status-btn:hover {
+      background: #e4d7c2;
+    }
+
+    /* 右頁：核心看點、概念網狀連結、讀書建議 */
+    .book-core-quote {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      color: var(--accent-warm);
+      font-style: italic;
+      padding: 12px 16px;
+      background: rgba(166, 82, 35, 0.05);
+      border-left: 3px solid var(--accent-warm);
+      border-radius: 0 4px 4px 0;
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--wood-dark);
+      letter-spacing: 0.06em;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .section-title::before {
+      content: '❖';
+      color: var(--accent-gold);
+      font-size: 0.8rem;
+    }
+
+    .highlights-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .highlights-list li {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: var(--text-main);
+      padding-left: 18px;
+      position: relative;
+    }
+
+    .highlights-list li::before {
+      content: '•';
+      color: var(--accent-warm);
+      position: absolute;
+      left: 4px;
+      top: -1px;
+      font-size: 1.1rem;
+    }
+
+    /* 概念雙向連結標籤 */
+    .concepts-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .concept-chip {
+      background: #eee3d0;
+      color: #4a3424;
+      border: 1px solid #d9c8af;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .concept-chip:hover {
+      background: var(--accent-warm);
+      border-color: var(--accent-warm);
+      color: #fff;
+    }
+
+    .concept-chip::before {
+      content: '#';
+      opacity: 0.6;
+    }
+
+    .reading-tips-box {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px dashed var(--border-warm);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* 關閉按鈕 */
+    .close-book-btn {
+      position: absolute;
+      top: 16px;
+      right: 18px;
+      background: none;
+      border: none;
+      font-size: 1.6rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      z-index: 20;
+      transition: color 0.2s;
+    }
+
+    .close-book-btn:hover {
+      color: var(--accent-warm);
+    }
+
+    /* 響應式調整 */
+    @media (max-width: 768px) {
+      .open-book-spread {
+        flex-direction: column;
+        height: 90vh;
+        max-height: none;
+        overflow-y: auto;
+      }
+      .book-page-left, .book-page-right {
+        padding: 24px 20px;
+        border-right: none;
+        background: var(--bg-page);
+      }
+      .book-spine-crease {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 頂部題字與導覽 -->
+  <header>
+    <div class="library-crest">Personal Wishlist Wiki</div>
+    <h1>待買書單知識庫</h1>
+    <p class="library-sub">「尚未翻開的書，是寄宿著未來生活可能性的容器。」</p>
+  </header>
+
+  <!-- 工具與過濾面板 -->
+  <section class="controls-panel">
+    <div class="top-actions">
+      <!-- 關鍵字搜尋 -->
+      <div class="search-box-wrapper">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" class="search-input" placeholder="搜尋書名、作者、微觀概念或適合情境...">
+      </div>
+
+      <!-- 狀態篩選與隨機選書 -->
+      <div class="action-buttons">
+        <div class="status-segment">
+          <button class="status-btn active" data-status="all">全部藏書</button>
+          <button class="status-btn" data-status="to-buy">待買中 (<span id="countToBuy">0</span>)</button>
+          <button class="status-btn" data-status="acquired">已入手 (<span id="countAcquired">0</span>)</button>
+        </div>
+
+        <button id="randomPickBtn" class="random-btn">
+          <span>✨</span> 今天帶哪本回家？
+        </button>
+      </div>
+    </div>
+
+    <!-- 9 大分類過濾標籤列 -->
+    <div class="category-pills" id="categoryPills">
+      <div class="cat-pill active" data-cat="all">全部領域</div>
+      <div class="cat-pill" data-cat="哲學">哲學</div>
+      <div class="cat-pill" data-cat="社會與政治">社會與政治</div>
+      <div class="cat-pill" data-cat="心理與個人成長">心理與個人成長</div>
+      <div class="cat-pill" data-cat="歷史">歷史</div>
+      <div class="cat-pill" data-cat="科學與科普">科學與科普</div>
+      <div class="cat-pill" data-cat="性別研究">性別研究</div>
+      <div class="cat-pill" data-cat="商業與經濟">商業與經濟</div>
+      <div class="cat-pill" data-cat="文學與小說">文學與小說</div>
+      <div class="cat-pill" data-cat="飲食、生活與藝術美學">飲食、生活與藝術美學</div>
+    </div>
+
+    <!-- 概念篩選啟用中標籤 -->
+    <div class="active-concept-indicator" id="activeConceptIndicator">
+      <span>正在篩選概念：<strong id="activeConceptName"></strong></span>
+      <button class="clear-concept-btn" id="clearConceptBtn" title="清除概念篩選">✕</button>
+    </div>
+  </section>
+
+  <!-- 書架陳列區 -->
+  <main class="bookshelf-container" id="bookshelfContainer">
+    <!-- 書架結構由 JavaScript 動態渲染 -->
+  </main>
+
+  <!-- 翻開一本書 (Open-Book Modal) -->
+  <div class="modal-overlay" id="bookModal">
+    <div class="open-book-spread">
+      <div class="book-spine-crease"></div>
+      <button class="close-book-btn" id="closeModalBtn" title="闔上書本">×</button>
+
+      <!-- 左頁：身分、裝幀、標籤 -->
+      <div class="book-page book-page-left">
+        <div class="left-cover-presentation">
+          <div class="modal-cover-frame" id="modalCoverContainer"></div>
+          <div class="modal-book-meta">
+            <h2 class="modal-book-title" id="modalTitle"></h2>
+            <div class="modal-book-orig-title" id="modalOrigTitle"></div>
+            <div class="modal-book-author" id="modalAuthor"></div>
+            <div class="modal-book-translator" id="modalTranslator"></div>
+          </div>
+        </div>
+
+        <div class="meta-tags-block">
+          <div class="meta-tag-group">
+            <span class="meta-label">領域歸屬：</span>
+            <span class="badge-primary-cat" id="modalPrimaryCat"></span>
+            <span id="modalSecCats"></span>
+          </div>
+
+          <div class="meta-tag-group">
+            <span class="meta-label">閱讀門檻：</span>
+            <span class="difficulty-badge" id="modalDifficulty"></span>
+          </div>
+
+          <div class="meta-tag-group">
+            <span class="meta-label">適合情境：</span>
+            <div id="modalContexts" style="display:flex; gap:6px; flex-wrap:wrap;"></div>
+          </div>
+        </div>
+
+        <div class="status-action-row">
+          <span class="meta-label" id="modalStatusLabel"></span>
+          <button class="toggle-status-btn" id="modalToggleStatusBtn">切換為已入手</button>
+        </div>
+      </div>
+
+      <!-- 右頁：看點、概念、心態 -->
+      <div class="book-page book-page-right">
+        <div class="book-core-quote" id="modalQuote"></div>
+
+        <div class="section-title">核心看點</div>
+        <ul class="highlights-list" id="modalHighlights"></ul>
+
+        <div class="section-title">微觀概念雙向網絡</div>
+        <div class="concepts-container" id="modalConcepts"></div>
+
+        <div class="reading-tips-box" id="modalReadingTips">
+          <span style="font-weight:700; color:var(--wood-dark);">選書顧問備註：</span>
+          <span id="modalReadingTipsText"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 9 大分類主題色盤（無封面圖時自動渲染）
+    const CATEGORY_COLORS = {
+      "哲學": "#3a3835",
+      "社會與政治": "#2c424a",
+      "心理與個人成長": "#4f3b59",
+      "歷史": "#5c3826",
+      "科學與科普": "#1e434c",
+      "性別研究": "#542c3d",
+      "商業與經濟": "#1d3e33",
+      "文學與小說": "#3f334a",
+      "飲食、生活與藝術美學": "#6e4720"
+    };
+
+    let allBooks = [];
+    let currentCategory = 'all';
+    let currentStatus = 'all';
+    let currentSearch = '';
+    let currentConcept = null;
+
+    // 載入資料
+    async function loadBooks() {
+      try {
+        const res = await fetch('./data/books.json');
+        if (!res.ok) throw new Error("HTTP error " + res.status);
+        allBooks = await res.json();
+      } catch (err) {
+        console.warn("未能透過 fetch 載入 data/books.json：", err);
+        if (window.location.protocol === 'file:') {
+          console.info("偵測到處於 file:// 協定，瀏覽器安全政策可能限制直接讀取本地 JSON。");
+        }
+        allBooks = [];
+      }
+      updateCounts();
+      renderBookshelf();
+    }
+
+    function updateCounts() {
+      const toBuyCount = allBooks.filter(b => b.status === 'to-buy').length;
+      const acquiredCount = allBooks.filter(b => b.status === 'acquired').length;
+      document.getElementById('countToBuy').textContent = toBuyCount;
+      document.getElementById('countAcquired').textContent = acquiredCount;
+    }
+
+    // 書籍過濾邏輯
+    function getFilteredBooks() {
+      return allBooks.filter(book => {
+        // 狀態篩選
+        if (currentStatus !== 'all' && book.status !== currentStatus) return false;
+
+        // 分類篩選（同時比對主分類與副分類）
+        if (currentCategory !== 'all') {
+          const matchPrimary = book.primary_category === currentCategory;
+          const matchSec = Array.isArray(book.secondary_categories) && book.secondary_categories.includes(currentCategory);
+          if (!matchPrimary && !matchSec) return false;
+        }
+
+        // 概念篩選
+        if (currentConcept) {
+          if (!Array.isArray(book.concepts) || !book.concepts.includes(currentConcept)) return false;
+        }
+
+        // 搜尋關鍵字比對
+        if (currentSearch.trim()) {
+          const q = currentSearch.toLowerCase();
+          const inTitle = (book.title || '').toLowerCase().includes(q);
+          const inAuthor = (book.author || '').toLowerCase().includes(q);
+          const inConcepts = Array.isArray(book.concepts) && book.concepts.some(c => c.toLowerCase().includes(q));
+          const inContexts = Array.isArray(book.contexts) && book.contexts.some(c => c.toLowerCase().includes(q));
+          if (!inTitle && !inAuthor && !inConcepts && !inContexts) return false;
+        }
+
+        return true;
+      });
+    }
+
+    // 渲染書架
+    function renderBookshelf() {
+      const container = document.getElementById('bookshelfContainer');
+      const filtered = getFilteredBooks();
+
+      if (filtered.length === 0) {
+        const isFileProtocol = window.location.protocol === 'file:';
+        let noticeHtml = '';
+        if (allBooks.length === 0 && isFileProtocol) {
+          noticeHtml = '偵測到直接雙擊以 file:// 協定開啟，現代瀏覽器預設阻擋本地 fetch 讀取 JSON。<br><span style="font-size:0.9rem; color:var(--accent-warm);">💡 建議使用本地伺服器開啟（在終端機執行 <code>python -m http.server 8000</code> 並訪問 <code>http://localhost:8000</code>），或推送到 GitHub Pages 即可完美展示！</span>';
+        } else if (allBooks.length === 0) {
+          noticeHtml = '目前書庫中尚無書籍，請透過 AI 助理新增書單！';
+        } else {
+          noticeHtml = '沒有找到符合篩選條件的書籍。可以嘗試切換分類或清除搜尋條件。';
+        }
+
+        container.innerHTML = `
+          <div class="shelf-group">
+            <div class="empty-shelf-notice">${noticeHtml}</div>
+            <div class="shelf-wood"></div>
+          </div>
+        `;
+        return;
+      }
+
+      // 每層書架容納 6~7 本書
+      const BOOKS_PER_SHELF = 6;
+      let html = '';
+
+      for (let i = 0; i < filtered.length; i += BOOKS_PER_SHELF) {
+        const shelfSlice = filtered.slice(i, i + BOOKS_PER_SHELF);
+        html += `<div class="shelf-group"><div class="shelf-books">`;
+
+        shelfSlice.forEach(book => {
+          const ribbonClass = book.status === 'to-buy' ? 'ribbon-to-buy' : 'ribbon-acquired';
+          const ribbonText = book.status === 'to-buy' ? '待買' : '已入手';
+          const bgColor = CATEGORY_COLORS[book.primary_category] || '#43342b';
+
+          let coverInnerHtml = '';
+          if (book.cover_url && book.cover_url.trim() !== '') {
+            coverInnerHtml = `<img src="${book.cover_url}" alt="${book.title}" loading="lazy" onerror="this.parentElement.innerHTML=getGeneratedCoverHtml('${escapeHtml(book.title)}', '${escapeHtml(book.author)}', '${escapeHtml(book.primary_category)}')">`;
+          } else {
+            coverInnerHtml = getGeneratedCoverHtml(book.title, book.author, book.primary_category);
+          }
+
+          html += `
+            <div class="book-item" data-id="${book.title}" onclick="openBookModal('${escapeHtml(book.title)}')">
+              <div class="book-cover-wrap" style="background-color: ${bgColor}">
+                <div class="book-ribbon ${ribbonClass}">${ribbonText}</div>
+                ${coverInnerHtml}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `</div><div class="shelf-wood"></div></div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function getGeneratedCoverHtml(title, author, category) {
+      const bgColor = CATEGORY_COLORS[category] || '#43342b';
+      return `
+        <div class="generated-cover" style="background: radial-gradient(circle at 70% 30%, rgba(255,255,255,0.12), transparent), ${bgColor};">
+          <div class="gen-category">${escapeHtml(category || '')}</div>
+          <div class="gen-title">${escapeHtml(title)}</div>
+          <div class="gen-author">${escapeHtml(author || '')}</div>
+        </div>
+      `;
+    }
+
+    // 打開一本書 (Open Book Modal)
+    function openBookModal(bookTitle) {
+      const book = allBooks.find(b => b.title === bookTitle);
+      if (!book) return;
+
+      document.getElementById('modalTitle').textContent = book.title;
+      document.getElementById('modalOrigTitle').textContent = book.original_title || '';
+      document.getElementById('modalAuthor').textContent = book.author;
+      document.getElementById('modalTranslator').textContent = book.translator ? `譯者：${book.translator}` : '';
+
+      // 封面
+      const coverBox = document.getElementById('modalCoverContainer');
+      const bgColor = CATEGORY_COLORS[book.primary_category] || '#43342b';
+      if (book.cover_url && book.cover_url.trim() !== '') {
+        coverBox.innerHTML = `<img src="${book.cover_url}" alt="${book.title}">`;
+      } else {
+        coverBox.innerHTML = getGeneratedCoverHtml(book.title, book.author, book.primary_category);
+      }
+
+      // 分類
+      document.getElementById('modalPrimaryCat').textContent = book.primary_category;
+      const secContainer = document.getElementById('modalSecCats');
+      secContainer.innerHTML = '';
+      if (Array.isArray(book.secondary_categories)) {
+        book.secondary_categories.forEach(sec => {
+          const span = document.createElement('span');
+          span.className = 'badge-sec-cat';
+          span.textContent = sec;
+          secContainer.appendChild(span);
+        });
+      }
+
+      // 難度
+      const diffEl = document.getElementById('modalDifficulty');
+      diffEl.textContent = book.difficulty || '入門';
+      diffEl.className = `difficulty-badge diff-${book.difficulty || '入門'}`;
+
+      // 情境
+      const ctxContainer = document.getElementById('modalContexts');
+      ctxContainer.innerHTML = '';
+      if (Array.isArray(book.contexts)) {
+        book.contexts.forEach(ctx => {
+          const span = document.createElement('span');
+          span.className = 'context-tag';
+          span.textContent = ctx;
+          ctxContainer.appendChild(span);
+        });
+      }
+
+      // 狀態
+      const isToBuy = book.status === 'to-buy';
+      document.getElementById('modalStatusLabel').textContent = isToBuy ? '狀態：待買中' : '狀態：已入手';
+      const toggleBtn = document.getElementById('modalToggleStatusBtn');
+      toggleBtn.textContent = isToBuy ? '標記為已入手' : '改回待買中';
+      toggleBtn.onclick = () => {
+        book.status = isToBuy ? 'acquired' : 'to-buy';
+        updateCounts();
+        openBookModal(book.title);
+        renderBookshelf();
+      };
+
+      // 右頁資訊
+      document.getElementById('modalQuote').textContent = book.summary || '尚無一句話核心摘錄。';
+
+      // 核心看點
+      const hlContainer = document.getElementById('modalHighlights');
+      hlContainer.innerHTML = '';
+      if (Array.isArray(book.highlights) && book.highlights.length > 0) {
+        book.highlights.forEach(h => {
+          const li = document.createElement('li');
+          li.textContent = h;
+          hlContainer.appendChild(li);
+        });
+      } else {
+        hlContainer.innerHTML = '<li>暫無詳細核心看點。</li>';
+      }
+
+      // 概念雙向連結標籤
+      const concContainer = document.getElementById('modalConcepts');
+      concContainer.innerHTML = '';
+      if (Array.isArray(book.concepts)) {
+        book.concepts.forEach(c => {
+          const chip = document.createElement('div');
+          chip.className = 'concept-chip';
+          chip.textContent = c;
+          chip.title = `點擊篩選所有探討「${c}」的書籍`;
+          chip.onclick = () => {
+            closeBookModal();
+            filterByConcept(c);
+          };
+          concContainer.appendChild(chip);
+        });
+      }
+
+      // 適合讀者備註
+      document.getElementById('modalReadingTipsText').textContent = book.reading_tips || '適合在悠閒安靜的時段細細咀嚼。';
+
+      document.getElementById('bookModal').classList.add('open');
+    }
+
+    function closeBookModal() {
+      document.getElementById('bookModal').classList.remove('open');
+    }
+
+    function filterByConcept(conceptName) {
+      currentConcept = conceptName;
+      document.getElementById('activeConceptName').textContent = conceptName;
+      document.getElementById('activeConceptIndicator').style.display = 'inline-flex';
+      renderBookshelf();
+    }
+
+    function clearConceptFilter() {
+      currentConcept = null;
+      document.getElementById('activeConceptIndicator').style.display = 'none';
+      renderBookshelf();
+    }
+
+    // 今天帶哪本回家（隨機選書按鈕）
+    function pickRandomBook() {
+      const candidates = getFilteredBooks().filter(b => b.status === 'to-buy');
+      if (candidates.length === 0) {
+        alert("目前的待買書單中沒有可抽取的書籍！");
+        return;
+      }
+
+      const picked = candidates[Math.floor(Math.random() * candidates.length)];
+      const bookElements = document.querySelectorAll('.book-item');
+      
+      bookElements.forEach(el => el.classList.remove('spotlight'));
+
+      // 找到對應元素做發光動畫
+      const targetEl = Array.from(bookElements).find(el => el.getAttribute('data-id') === picked.title);
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        targetEl.classList.add('spotlight');
+        setTimeout(() => {
+          targetEl.classList.remove('spotlight');
+          openBookModal(picked.title);
+        }, 800);
+      } else {
+        openBookModal(picked.title);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // 事件監聽綁定
+    document.addEventListener('DOMContentLoaded', () => {
+      loadBooks();
+
+      // 搜尋
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        currentSearch = e.target.value;
+        renderBookshelf();
+      });
+
+      // 狀態按鈕
+      document.querySelectorAll('.status-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+          e.target.classList.add('active');
+          currentStatus = e.target.getAttribute('data-status');
+          renderBookshelf();
+        });
+      });
+
+      // 9 大分類
+      document.querySelectorAll('.cat-pill').forEach(pill => {
+        pill.addEventListener('click', (e) => {
+          document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+          e.target.classList.add('active');
+          currentCategory = e.target.getAttribute('data-cat');
+          renderBookshelf();
+        });
+      });
+
+      // 隨機選書
+      document.getElementById('randomPickBtn').addEventListener('click', pickRandomBook);
+
+      // 關閉 Modal
+      document.getElementById('closeModalBtn').addEventListener('click', closeBookModal);
+      document.getElementById('bookModal').addEventListener('click', (e) => {
+        if (e.target.id === 'bookModal') closeBookModal();
+      });
+
+      // 清除概念
+      document.getElementById('clearConceptBtn').addEventListener('click', clearConceptFilter);
+
+      // ESC 鍵關閉
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeBookModal();
+      });
+    });
+  </script>
+</body>
+</html>
